@@ -152,53 +152,13 @@ async def reply(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
     message = cast(Message, update.effective_message)    
     bot = cast(Bot, context.bot)
-    TYPE = {
-        MessageType.ANIMATION: bot.send_animation,
-        MessageType.AUDIO: bot.send_audio,
-        MessageType.DOCUMENT: bot.send_document,
-        MessageType.PHOTO: bot.send_photo,
-        MessageType.STICKER: bot.send_sticker,
-        MessageType.VIDEO: bot.send_video,
-        MessageType.VIDEO_NOTE: bot.send_video_note,
-        MessageType.VOICE: bot.send_voice,
-        MessageType.TEXT: bot.send_message,
-    } 
     
     user_id = await get_user_id(message, strings)      
-    content = message_content(message)     
-    data = button_parser(content[0])   
     
     try:
-        if TYPE[content[1]] in [
-            bot.send_audio,
-            bot.send_voice,
-            bot.send_document,
-        ]:
-            await TYPE[content[1]](
-                user_id,
-                content[2],
-                caption=data[0],
-                reply_markup=InlineKeyboardMarkup(data[1]) if len(data[1]) != 0 else None
-            )            
-        elif TYPE[content[1]] in [bot.send_sticker, bot.send_video_note]:
-            await TYPE[content[1]](
-                user_id, 
-                content[2]
-            )
-        elif TYPE[content[1]] == bot.send_message:
-            await TYPE[content[1]](
-                user_id, 
-                data[0],
-                reply_markup=InlineKeyboardMarkup(data[1]) if len(data[1]) != 0 else None
-            )
-        else:
-            await TYPE[content[1]](
-                user_id,
-                content[2],
-                caption=data[0],
-                has_spoiler=True,
-                reply_markup=InlineKeyboardMarkup(data[1]) if len(data[1]) != 0 else None
-            )
+        await bot.copyMessage(
+            chat_id=user_id, from_chat_id=message.chat.id, message_id=message.message_id
+        )
     except BadRequest as exception:
         logger.info(
             "The message couldn't be sent to user_id %s, due to: %s", 
